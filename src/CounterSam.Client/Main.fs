@@ -13,7 +13,6 @@ open Bolero.Templating.Client
 type Page =
     | [<EndPoint "/">] Home
     | [<EndPoint "/counter">] Counter
-    | [<EndPoint "/data">] Data
 
 /// The Elmish application's model.
 type Model =
@@ -199,16 +198,11 @@ let view model dispatch =
         .Menu(concat [
             menuItem model Home "Home"
             menuItem model Counter "Counter"
-            menuItem model Data "Download data"
         ])
         .Body(
             cond model.page <| function
             | Home -> homePage model dispatch
             | Counter -> counterPage model dispatch
-            | Data ->
-                cond model.signedInAs <| function
-                | Some username -> dataPage model username dispatch
-                | None -> signInPage model dispatch
         )
         .Error(
             cond model.error <| function
