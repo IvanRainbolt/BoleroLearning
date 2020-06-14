@@ -19,33 +19,15 @@ type Model =
     {
         page: Page
         counter: int
-        books: Book[] option
         error: string option
-        username: string
-        password: string
-        signedInAs: option<string>
-        signInFailed: bool
     }
 
-and Book =
-    {
-        title: string
-        author: string
-        [<DateTimeFormat "yyyy-MM-dd">]
-        publishDate: DateTime
-        isbn: string
-    }
 
 let initModel =
     {
         page = Home
         counter = 0
-        books = None
         error = None
-        username = ""
-        password = ""
-        signedInAs = None
-        signInFailed = false
     }
 
 /// The Elmish application's update messages.
