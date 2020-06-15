@@ -18,6 +18,7 @@ type Model =
         page: Page
         counter: int
         error: string option
+        fizzBuzzUpperLimit: int
     }
 
 
@@ -26,6 +27,7 @@ let initModel =
         page = Home
         counter = 0
         error = None
+        fizzBuzzUpperLimit = 0
     }
 
 /// The Elmish application's update messages.
@@ -34,6 +36,7 @@ type Message =
     | Increment
     | Decrement
     | SetCounter of int
+    | SetFizzBuzzUpperNum of int
     | Error of exn
     | ClearError
 
@@ -48,6 +51,9 @@ let update message model =
         { model with counter = model.counter - 1 }, Cmd.none
     | SetCounter value ->
         { model with counter = value }, Cmd.none
+    | SetFizzBuzzUpperNum value ->
+        { model with fizzBuzzUpperLimit = value }, Cmd.none
+
     | Error exn ->
         { model with error = Some exn.Message }, Cmd.none
     | ClearError ->
@@ -70,6 +76,8 @@ let counterPage model dispatch =
 
 let fizzBuzzPage model dispatch =
     Main.FizzBuzz()
+        .fbIn(model.fizzBuzzUpperLimit, fun v -> dispatch (SetFizzBuzzUpperNum v))
+        .GoFB(fun _ -> dispatch (SetFizzBuzzUpperNum model.fizzBuzzUpperLimit))
         .Elt()
 
 let menuItem (model: Model) (page: Page) (text: string) =
