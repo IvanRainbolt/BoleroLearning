@@ -1,0 +1,204 @@
+﻿<!-- /*
+** SAMSON
+*/ -->
+<!DOCTYPE html>
+<html>
+<body>
+
+    <div id="representation">
+        <blockquote>Problem is (follow me closely here, the science is pretty complicated), if I cut a hole in the Hab, the air won't stay inside anymore.</blockquote><br>
+        - Andy Weir, The Martian
+    </div>
+
+    <script type="text/javascript">
+
+const app = {};
+
+////////////////////////////////////////////////////////////////////////////////
+// Model
+////////////////////////////////////////////////////////////////////////////////
+
+const COUNTER_MAX = 10;
+
+app.model = {
+        counter: COUNTER_MAX,
+        started: false,
+        launched: false,
+        aborted: false
+        };
+
+/**
+ * Mutation function for model updates
+ */
+app.mutateModel = (data = {}) => {
+
+    if (app.state.counting(app.model)) {
+
+        if (app.model.counter === 0) {
+
+            app.model.launched = data.launched || false;
+
+        } else {
+
+            app.model.aborted = data.aborted || false;
+            if (data.counter !== undefined) { app.model.counter = data.counter; }
+        }
+    } else {
+
+        if (app.state.ready(app.model)) {
+            app.model.started = data.started || false;
+        }
+    }
+
+    app.render(app.model, app.state, app.view);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// View
+////////////////////////////////////////////////////////////////////////////////
+
+app.view = {
+
+   // Initial State
+    init : (model) => app.view.ready(model),
+
+    // View representation of the ready state
+    ready : model => (
+                `<p>Counter: ${model.counter}</p>
+                <form onSubmit=\"JavaScript:return app.actions.start({});\">
+                    <input type=\"submit\" value=\"Start\">
+                </form>`
+                ),
+
+    // View representation of the counting state
+    counting : model => (
+                `<p>Count down:"${model.counter}"</p>
+                <form onSubmit=\"JavaScript:return app.actions.abort({});\">
+                    <input type=\"submit\" value=\"Abort\">
+                </form>`
+                ),
+
+    // View representation of the aborted state
+    aborted : model => (
+                `<p>Aborted at Counter:"${model.counter}"</p>`
+                ),
+
+    // View representation of the launched state
+    launched : model => (
+                `<p>Launched</p>`
+                )
+};
+
+// ** RENDER TO DOM ** //
+app.display = representation => {
+    const stateRepresentation = document.getElementById("representation");
+    stateRepresentation.innerHTML = representation;
+}
+
+// Display initial state
+app.display(app.view.init(app.model));
+
+
+////////////////////////////////////////////////////////////////////////////////
+// State Machine
+////////////////////////////////////////////////////////////////////////////////
+
+app.state = {
+
+    // Derive the current state of the system
+    ready : model => (model.counter === COUNTER_MAX) && !model.started && !model.launched && !model.aborted,
+
+    counting : model => (model.counter <= COUNTER_MAX) && (model.counter >= 0) && model.started && !model.launched && !model.aborted,
+
+    launched : model => (model.counter == 0) && model.started && model.launched && !model.aborted,
+
+    aborted : model => (model.counter <= COUNTER_MAX) && (model.counter >= 0) && model.started && !model.launched && model.aborted
+
+};
+
+// Derive the state representation as a function of the system
+app.representation = (model, state, view) => {
+
+    let result = 'oops... something went wrong, the system is in an invalid state' ;
+
+    if (state.ready(model)) {
+        result = view.ready(model) ;
+    }
+
+    if (state.counting(model)) {
+        result = view.counting(model) ;
+    }
+
+    if (state.launched(model)) {
+        result = view.launched(model) ;
+    }
+
+    if (state.aborted(model)) {
+        result = view.aborted(model) ;
+    }
+
+    app.display(result) ;
+}
+
+
+// Next action predicate, derives whether
+// the system is in a (control) state where
+// an action needs to be invoked
+app.nextAction = (model, state) => {
+
+    if (state.counting(model)) {
+
+        if (model.counter > 0) {
+
+            app.actions.decrement({counter: model.counter});
+        }
+
+        if (model.counter === 0) {
+
+            app.actions.launch({});
+        }
+    }
+}
+
+app.render = (model, state, view) => {
+
+    app.representation(model, state, view);
+    app.nextAction(model, state);
+}
+
+app.actions = {
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Actions
+    ////////////////////////////////////////////////////////////////////////////////
+
+    start : (data = {}) => {
+        data.started = true;
+        app.mutateModel(data);
+        return false;
+    },
+
+    decrement : (data = {}) => {
+        data.counter = data.counter || 10;
+        setTimeout(() => {
+            data.counter = data.counter - 1;
+            app.mutateModel(data);
+        }, 1000);
+    },
+
+    launch : (data = {}) => {
+        data.launched = true;
+        app.mutateModel(data);
+    },
+
+    abort : (data = {}) => {
+        data.aborted = true;
+        app.mutateModel(data);
+    }
+
+}
+
+    </script>
+</body>
+</html>
