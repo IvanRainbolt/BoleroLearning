@@ -10,6 +10,7 @@ open Bolero.Templating.Client
 type Page =
     | [<EndPoint "/">] Home
     | [<EndPoint "/counter">] Counter
+    | [<EndPoint "/FizzBuzz">] FizzBuzz
 
 /// The Elmish application's model.
 type Model =
@@ -67,6 +68,9 @@ let counterPage model dispatch =
         .Value(model.counter, fun v -> dispatch (SetCounter v))
         .Elt()
 
+let fizzBuzzPage model dispatch =
+    Main.FizzBuzz()
+        .Elt()
 
 let menuItem (model: Model) (page: Page) (text: string) =
     Main.MenuItem()
@@ -80,11 +84,13 @@ let view model dispatch =
         .Menu(concat [
             menuItem model Home "Home"
             menuItem model Counter "Counter"
+            menuItem model FizzBuzz "FizzBuzz"
         ])
         .Body(
             cond model.page <| function
             | Home -> homePage model dispatch
             | Counter -> counterPage model dispatch
+            | FizzBuzz -> fizzBuzzPage model dispatch
         )
         .Error(
             cond model.error <| function
